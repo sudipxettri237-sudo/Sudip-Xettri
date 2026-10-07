@@ -1,0 +1,6 @@
+{
+  "name": "Synapse",
+  "description": "Full-featured social network and administrative moderation control panel platform built with Jetpack Compose and Firebase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Synapse</string>
+    <string name="admin_app_name">Synapse Admin</string>
+</resources>

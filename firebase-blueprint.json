@@ -1,0 +1,217 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account and profile details in the social network",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "username": { "type": "string", "description": "Unique handle" },
+        "email": { "type": "string", "description": "User email address" },
+        "photoURL": { "type": "string", "description": "Profile photo URL" },
+        "coverURL": { "type": "string", "description": "Cover photo URL" },
+        "bio": { "type": "string", "description": "User biography" },
+        "role": { "type": "string", "enum": ["user", "moderator", "admin"], "description": "Access control role" },
+        "status": { "type": "string", "enum": ["active", "suspended", "banned"], "description": "Account moderation status" },
+        "isOnline": { "type": "boolean", "description": "User online presence" },
+        "lastSeen": { "type": "string", "format": "date-time", "description": "Last activity timestamp" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account registration timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["uid", "displayName", "username", "email", "role", "status"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "User publication feed item",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string", "description": "Unique post identifier" },
+        "authorId": { "type": "string", "description": "Author UID" },
+        "authorName": { "type": "string", "description": "Author display name" },
+        "authorUsername": { "type": "string", "description": "Author handle" },
+        "authorPhotoURL": { "type": "string", "description": "Author avatar URL" },
+        "content": { "type": "string", "description": "Post text body" },
+        "mediaUrls": { "type": "string", "description": "JSON serialized media urls" },
+        "mediaType": { "type": "string", "enum": ["none", "image", "video"], "description": "Media type" },
+        "visibility": { "type": "string", "enum": ["public", "followers", "hidden"], "description": "Visibility scope" },
+        "likeCount": { "type": "integer", "description": "Count of likes" },
+        "commentCount": { "type": "integer", "description": "Count of comments" },
+        "shareCount": { "type": "integer", "description": "Count of shares" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Post publication timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["postId", "authorId", "content", "visibility"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Comment left on a post",
+      "type": "object",
+      "properties": {
+        "commentId": { "type": "string", "description": "Unique comment identifier" },
+        "authorId": { "type": "string", "description": "Comment author UID" },
+        "authorName": { "type": "string", "description": "Author display name" },
+        "authorPhotoURL": { "type": "string", "description": "Author avatar URL" },
+        "content": { "type": "string", "description": "Comment text" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["commentId", "authorId", "authorName", "content"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Direct message thread between users",
+      "type": "object",
+      "properties": {
+        "conversationId": { "type": "string", "description": "Unique thread identifier" },
+        "participantIds": { "type": "string", "description": "JSON array of participant UIDs" },
+        "lastMessage": { "type": "string", "description": "Snippet of last message" },
+        "lastSenderId": { "type": "string", "description": "UID of last sender" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp of last message" }
+      },
+      "required": ["conversationId", "participantIds"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Individual chat message",
+      "type": "object",
+      "properties": {
+        "messageId": { "type": "string", "description": "Unique message identifier" },
+        "senderId": { "type": "string", "description": "Sender UID" },
+        "senderName": { "type": "string", "description": "Sender display name" },
+        "text": { "type": "string", "description": "Message text" },
+        "mediaUrl": { "type": "string", "description": "Optional image URL" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Message timestamp" },
+        "isRead": { "type": "boolean", "description": "Read receipt status" }
+      },
+      "required": ["messageId", "senderId"]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "In-app notification for likes, comments, follows, messages, announcements",
+      "type": "object",
+      "properties": {
+        "notificationId": { "type": "string", "description": "Unique notification identifier" },
+        "recipientId": { "type": "string", "description": "Recipient UID" },
+        "senderId": { "type": "string", "description": "Sender UID or system" },
+        "senderName": { "type": "string", "description": "Sender display name" },
+        "type": { "type": "string", "enum": ["like", "comment", "follow", "message", "announcement"], "description": "Notification category" },
+        "targetId": { "type": "string", "description": "Referenced post, comment, or thread ID" },
+        "title": { "type": "string", "description": "Notification title" },
+        "message": { "type": "string", "description": "Notification body" },
+        "isRead": { "type": "boolean", "description": "Read flag" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["notificationId", "recipientId", "title", "message"]
+    },
+    "Story": {
+      "title": "Story",
+      "description": "Ephemeral 24-hour visual story",
+      "type": "object",
+      "properties": {
+        "storyId": { "type": "string", "description": "Unique story identifier" },
+        "authorId": { "type": "string", "description": "Story author UID" },
+        "authorName": { "type": "string", "description": "Author display name" },
+        "authorPhotoURL": { "type": "string", "description": "Author avatar URL" },
+        "mediaUrl": { "type": "string", "description": "Story image URL" },
+        "caption": { "type": "string", "description": "Optional story caption" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Story creation timestamp" }
+      },
+      "required": ["storyId", "authorId", "authorName", "mediaUrl"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "User or content moderation report",
+      "type": "object",
+      "properties": {
+        "reportId": { "type": "string", "description": "Unique report identifier" },
+        "reporterId": { "type": "string", "description": "Reporter UID" },
+        "reporterName": { "type": "string", "description": "Reporter display name" },
+        "targetType": { "type": "string", "enum": ["user", "post", "comment"], "description": "Reported entity type" },
+        "targetId": { "type": "string", "description": "Reported entity ID" },
+        "reason": { "type": "string", "description": "Reason for report" },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "resolved", "rejected"], "description": "Moderation status" },
+        "moderatorNotes": { "type": "string", "description": "Notes added by admin or moderator" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["reportId", "reporterId", "targetType", "targetId", "reason", "status"]
+    },
+    "AdminLog": {
+      "title": "AdminLog",
+      "description": "Audit log for administrative and moderation actions",
+      "type": "object",
+      "properties": {
+        "logId": { "type": "string", "description": "Unique audit log identifier" },
+        "adminUid": { "type": "string", "description": "Admin UID" },
+        "adminName": { "type": "string", "description": "Admin display name" },
+        "action": { "type": "string", "description": "Action performed (e.g., BAN_USER, DELETE_POST)" },
+        "targetId": { "type": "string", "description": "Target ID" },
+        "targetType": { "type": "string", "description": "Target entity type" },
+        "details": { "type": "string", "description": "Details of the action" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Log timestamp" }
+      },
+      "required": ["logId", "adminUid", "adminName", "action", "targetId", "targetType"]
+    },
+    "AppSetting": {
+      "title": "AppSetting",
+      "description": "Global application configuration toggles",
+      "type": "object",
+      "properties": {
+        "settingId": { "type": "string", "description": "Setting ID, usually 'global'" },
+        "maintenanceMode": { "type": "boolean", "description": "Platform maintenance toggle" },
+        "registrationEnabled": { "type": "boolean", "description": "Allow new registrations" },
+        "postingEnabled": { "type": "boolean", "description": "Allow new posts" },
+        "messagingEnabled": { "type": "boolean", "description": "Allow chat messaging" },
+        "moderationEnabled": { "type": "boolean", "description": "Active moderation rules" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last config change" }
+      },
+      "required": ["settingId", "maintenanceMode", "registrationEnabled", "postingEnabled", "messagingEnabled"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles and account data"
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Public and follower social posts"
+    },
+    "/posts/{postId}/likes/{uid}": {
+      "schema": { "title": "Like", "description": "Post like entry", "type": "object", "properties": { "uid": { "type": "string" }, "createdAt": { "type": "string", "format": "date-time" } }, "required": ["uid"] },
+      "description": "User likes on a post"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "User comments on a post"
+    },
+    "/conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/Conversation" },
+      "description": "Direct message conversations"
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Messages inside a conversation"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/NotificationItem" },
+      "description": "User notification items"
+    },
+    "/stories/{storyId}": {
+      "schema": { "$ref": "#/entities/Story" },
+      "description": "User ephemeral stories"
+    },
+    "/reports/{reportId}": {
+      "schema": { "$ref": "#/entities/Report" },
+      "description": "Moderation reports"
+    },
+    "/adminLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AdminLog" },
+      "description": "Administrative audit logs"
+    },
+    "/appSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/AppSetting" },
+      "description": "Global application configuration"
+    }
+  }
+}

@@ -1,0 +1,151 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function getUserData(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function isCallerAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData(request.auth.uid).role == 'admin') ||
+        request.auth.token.role == 'admin'
+      );
+    }
+
+    function isCallerModerator() {
+      return isAuthenticated() && (
+        isCallerAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData(request.auth.uid).role in ['admin', 'moderator']) ||
+        request.auth.token.role in ['admin', 'moderator']
+      );
+    }
+
+    function isCallerActive() {
+      return isAuthenticated() && (
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+        getUserData(request.auth.uid).status == 'active'
+      );
+    }
+
+    // Users Collection
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+
+      allow create: if isUser(uid) &&
+        (request.resource.data.role == 'user' || request.resource.data.role == 'admin') &&
+        (request.resource.data.status == 'active');
+
+      allow update: if (isUser(uid) &&
+                        request.resource.data.role == resource.data.role &&
+                        request.resource.data.status == resource.data.status)
+                    || isCallerAdmin();
+
+      allow delete: if isCallerAdmin();
+    }
+
+    // Posts Collection
+    match /posts/{postId} {
+      allow read: if isAuthenticated() &&
+        (resource.data.visibility != 'hidden' || resource.data.authorId == request.auth.uid || isCallerModerator());
+
+      allow create: if isAuthenticated() &&
+        request.resource.data.authorId == request.auth.uid &&
+        isCallerActive();
+
+      allow update: if (isAuthenticated() && resource.data.authorId == request.auth.uid && isCallerActive()) ||
+                       isCallerModerator();
+
+      allow delete: if (isAuthenticated() && resource.data.authorId == request.auth.uid) ||
+                       isCallerModerator();
+
+      // Post Likes Subcollection
+      match /likes/{likeUid} {
+        allow read: if isAuthenticated();
+        allow write: if isUser(likeUid) && isCallerActive();
+      }
+
+      // Post Comments Subcollection
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() &&
+          request.resource.data.authorId == request.auth.uid &&
+          isCallerActive();
+        allow update, delete: if (isAuthenticated() && resource.data.authorId == request.auth.uid) ||
+                                 isCallerModerator();
+      }
+    }
+
+    // Conversations Collection
+    match /conversations/{conversationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isCallerAdmin();
+
+      // Messages Subcollection
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() &&
+          request.resource.data.senderId == request.auth.uid &&
+          isCallerActive();
+        allow update, delete: if (isAuthenticated() && resource.data.senderId == request.auth.uid) ||
+                                 isCallerModerator();
+      }
+    }
+
+    // Notifications Collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() &&
+        (resource.data.recipientId == request.auth.uid || isCallerAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() &&
+        (resource.data.recipientId == request.auth.uid || isCallerAdmin());
+      allow delete: if isAuthenticated() &&
+        (resource.data.recipientId == request.auth.uid || isCallerAdmin());
+    }
+
+    // Stories Collection
+    match /stories/{storyId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.authorId == request.auth.uid &&
+        isCallerActive();
+      allow update, delete: if (isAuthenticated() && resource.data.authorId == request.auth.uid) ||
+                               isCallerModerator();
+    }
+
+    // Moderation Reports Collection
+    match /reports/{reportId} {
+      allow read: if isCallerModerator() ||
+        (isAuthenticated() && resource.data.reporterId == request.auth.uid);
+      allow create: if isAuthenticated() &&
+        request.resource.data.reporterId == request.auth.uid;
+      allow update: if isCallerModerator();
+      allow delete: if isCallerAdmin();
+    }
+
+    // Admin Audit Logs Collection
+    match /adminLogs/{logId} {
+      allow read: if isCallerModerator();
+      allow create: if isCallerModerator();
+      allow update, delete: if isCallerAdmin();
+    }
+
+    // App Global Settings Collection
+    match /appSettings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isCallerAdmin();
+    }
+  }
+}
